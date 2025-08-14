@@ -147,7 +147,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Container(
+        child: SizedBox(
           // color: Colors.amber,
           // height: Get.height,
           width: Get.width,
@@ -158,7 +158,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
               if (isLoading)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Container(
+                  child: SizedBox(
                     height: 150,
                     width: Get.width,
                     child: const Center(
@@ -568,7 +568,9 @@ class _DeviceDetailState extends State<DeviceDetail> {
                         DevicesService().updateDeviceStatus(widget.deviceID);
                       }
 
-                      Map<String, dynamic> deviceValue = data['value'];
+                      Map<String, dynamic> deviceValue =
+                          Map<String, dynamic>.from(data['value'] as Map);
+                      // Map<String, dynamic> deviceValue = data['value'];
 
                       //check the data type first, if the data string then do not add to the 'valueKeys' List, create a new list to save the key with string data type
                       // deviceValue.forEach((key, value) {
@@ -602,7 +604,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                         print(e);
                       }
 
-                      return Container(
+                      return SizedBox(
                         height: Get.height - 150 - 72,
                         width: Get.width,
                         child: ContainedTabBarView(

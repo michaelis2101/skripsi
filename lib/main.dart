@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'ta_web',
+      title: 'FDSM',
       theme: ThemeData(
           fontFamily: "Nunito",
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),

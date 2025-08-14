@@ -1,18 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:image_network/image_network.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ta_web/classes/colors_cl.dart';
-import 'package:ta_web/models/user_model.dart';
 import 'package:ta_web/services/auth_service.dart';
-import 'package:ta_web/services/user_service.dart';
-import 'package:ta_web/views/screen_handler.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -49,20 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return emailCont.text.length >= 5 && passwordCont.text.length >= 6;
   }
 
-  static Future<UserCredential> register(String email, String password) async {
-    FirebaseApp app = await Firebase.initializeApp(
-        name: 'Secondary', options: Firebase.app().options);
-
-    UserCredential userCredential = await FirebaseAuth.instanceFor(app: app)
-        .createUserWithEmailAndPassword(email: email, password: password);
-    await app.delete();
-    return Future.sync(() => userCredential);
-    // Do something with exception. This try/catch is here to make sure
-    // that even if the user creation fails, app.delete() runs, if is not,
-    // next time Firebase.initializeApp() will fail as the previous one was
-    // not deleted.
-  }
-
   Future<void> signUpEmailAndPassword() async {
     bool registrationSuccessful = false;
     setState(() {
@@ -97,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               Text(
                 e.code.toString(),
-                style: TextStyle(fontSize: 15),
+                style: const TextStyle(fontSize: 15),
               )
             ],
           ),
@@ -212,764 +192,572 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
-    // var height = Get.height;
-    // var width = Get.width;
 
     return Scaffold(
-        backgroundColor: ColorApp.lapisLazuli,
-        body: Stack(
-          children: [
-            Container(
-              height: height,
-              width: width,
-              decoration: BoxDecoration(color: ColorApp.lapisLazuli),
-              child: Center(
-                child: Container(
-                  height: height * 0.7,
-                  width: width * 0.7,
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      // border: BorderSide(),
-                      border: Border.all(color: Colors.white, width: 1),
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (!isSignUp)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: 40, left: 8, right: 8, bottom: 8),
-                          // padding: const EdgeInsets.all(8.0),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // const SizedBox(height: 32),
-                                // Text(data)
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    "Sign In",
-                                    style: TextStyle(
-                                        color: ColorApp.lapisLazuli,
-                                        fontSize: 25,
-                                        fontFamily: "Nunito",
-                                        fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                                Align(
-                                    alignment: Alignment.bottomLeft,
-                                    child: Text(
-                                      "Please Sign In to Continue",
-                                      style: TextStyle(
-                                          color: ColorApp.lapisLazuli,
-                                          fontFamily: "Nunito"),
-                                    )),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                SizedBox(
-                                  height: 50,
-                                  width: width * 0.7 * 0.48,
-                                  child: TextField(
-                                      controller: emailCont,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        prefixIconColor: ColorApp.lapisLazuli,
-                                        labelStyle: TextStyle(
-                                            color: ColorApp.lapisLazuli),
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1.0,
-                                                color: ColorApp.lapisLazuli),
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(10))),
-                                        focusColor: ColorApp.lapisLazuli,
-                                        border: const OutlineInputBorder(
-                                            borderSide: BorderSide(width: 1.0),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(10))),
-                                        labelText: 'Email',
-                                        hintText: 'Enter Your Email',
-                                        prefixIcon:
-                                            const Icon(Icons.email_rounded),
-                                      )),
-                                ),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                SizedBox(
-                                  height: 50,
-                                  // width: 200,
-                                  width: width * 0.7 * 0.48,
-                                  child: TextField(
-                                      controller: passwordCont,
-                                      obscureText: hidePw,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        prefixIconColor: ColorApp.lapisLazuli,
-                                        labelStyle: TextStyle(
-                                            color: ColorApp.lapisLazuli),
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1.0,
-                                                color: ColorApp.lapisLazuli),
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(10))),
-                                        focusColor: ColorApp.lapisLazuli,
-                                        border: const OutlineInputBorder(
-                                            borderSide: BorderSide(width: 1.0),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(10))),
-                                        labelText: 'Password',
-                                        hintText: 'Enter Your Password',
-                                        prefixIcon:
-                                            const Icon(Icons.password_rounded),
-                                        suffixIcon: IconButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                hidePw = !hidePw;
-                                              });
-                                            },
-                                            icon: Icon(hidePw
-                                                ? Icons.visibility_rounded
-                                                : Icons
-                                                    .visibility_off_rounded)),
-                                      )),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                if (isLoading)
-                                  SizedBox(
-                                    width: width * 0.7 * 0.48,
-                                    height: 50,
-                                    child: Center(
-                                        child: LinearProgressIndicator(
-                                      color: ColorApp.lapisLazuli,
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(100)),
-                                    )),
-                                  ),
-                                if (isLoading)
-                                  SizedBox(
-                                    width: width * 0.7 * 0.48,
-                                    height: 60,
-                                  ),
-
-                                if (!isLoading)
-                                  SizedBox(
-                                    width: width * 0.7 * 0.48,
-                                    height: 50,
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        if (emailCont.text.isEmpty ||
-                                            passwordCont.text.isEmpty) {
-                                          Get.snackbar("Warning",
-                                              "Email and Password can't be empty",
-                                              backgroundColor: Colors.white,
-                                              icon: const Icon(Icons.error));
-                                        } else if (emailCont.text.length < 5 ||
-                                            passwordCont.text.length < 6) {
-                                          Get.snackbar("Warning",
-                                              "Password Length Must be Greater than 6",
-                                              backgroundColor: Colors.white,
-                                              icon: const Icon(Icons.error));
-                                        } else {
-                                          // Get.to(() => const ScreenHandler());
-                                          await logInEmailAndPassword();
-                                          // testLoading();
-                                          // final SharedPreferences prefs =
-                                          //     await SharedPreferences.getInstance();
-                                          // User? user = FirebaseAuth.instance.currentUser;
-                                          // // store.write("email", user!.email);
-                                          // // store.write("uid", user.uid);
-                                          // prefs.setString('email', user!.email!);
-                                          // prefs.setString('uid', user.uid);
-                                        }
-                                      },
-                                      // onPressed: areFieldsFilled()
-                                      //     ? () => logInEmailAndPassword()
-                                      //     : null,
-                                      // : () => Get.snackbar("Warning",
-                                      //     "Email and Password can't be empty",
-                                      //     backgroundColor: Colors.white,
-                                      //     icon: const Icon(Icons.error)),
-                                      // onPressed: () => logInEmailAndPassword(),
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: ColorApp.lapisLazuli,
-                                          // minimumSize: const Size.fromHeight(50),
-                                          shape: const RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(10)))),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "Sign In",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontFamily: "Nunito",
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                          Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: Colors.white,
-                                            size: 20,
-                                            weight: 700,
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                if (!isLoading)
-                                  SizedBox(
-                                    width: width * 0.7 * 0.48,
-                                    child: const Align(
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          'Or',
-                                          style:
-                                              TextStyle(fontFamily: 'Nunito'),
-                                        )),
-                                  ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                if (!isLoading)
-                                  SizedBox(
-                                    // width: double.infinity,
-                                    width: width * 0.7 * 0.48,
-                                    height: 50,
-                                    child: InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          isSignUp = !isSignUp;
-                                        });
-                                      },
-                                      child: Container(
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              border: Border.all(
-                                                  width: 1,
-                                                  color: ColorApp.lapisLazuli)),
-                                          child: Center(
-                                            child: Text(
-                                              'Sign Up',
-                                              style: TextStyle(
-                                                  color: ColorApp.lapisLazuli,
-                                                  fontFamily: "Nunito",
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w700),
-                                            ),
-                                          )),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ).animate().fadeIn(),
-                      if (!isSignUp)
-                        Expanded(
-                          child: Container(
-                            // color: ColorApp.duronQuartzWhite,
-                            height: height * 0.7,
-                            width: width * 0.7 * 0.48,
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10)),
-                            // color: ColorApp.duronQuartzWhite,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 1),
-                                  child: AspectRatio(
-                                    aspectRatio: 32 / 6,
-                                    child: Container(
-                                      // color: Colors.pink,
-                                      child: SvgPicture.asset(
-                                        'assets/svg/logo_fdsm.svg',
-                                        // color: Colors.pink,
-                                        fit: BoxFit.scaleDown,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                const Text(
-                                  'Firebase IoT Device System Manager',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                Center(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/picture/logotk.png',
-                                        scale: 6,
-                                      ),
-                                      Container(
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                            border: Border.symmetric(
-                                                vertical: BorderSide(
-                                                    width: 1,
-                                                    color:
-                                                        ColorApp.lapisLazuli))),
-                                      ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      Image.asset(
-                                        'assets/picture/logoupi.png',
-                                        scale: 12,
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
+      backgroundColor: ColorApp.lapisLazuli,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              ColorApp.lapisLazuli,
+              ColorApp.lapisLazuli.withValues(alpha: 0.8),
+              ColorApp.lapisLazuli.withValues(alpha: 0.9),
+            ],
+          ),
+        ),
+        child: Center(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: 1200,
+              maxHeight: height * 0.85,
+            ),
+            margin: EdgeInsets.symmetric(
+              horizontal: width * 0.05,
+              vertical: height * 0.075,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  spreadRadius: 0,
+                  blurRadius: 30,
+                  offset: const Offset(0, 15),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  spreadRadius: 0,
+                  blurRadius: 60,
+                  offset: const Offset(0, 30),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Row(
+                children: [
+                  // Left Panel - Form
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      padding: const EdgeInsets.all(48),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (!isSignUp) _buildSignInForm(),
+                            if (isSignUp) _buildSignUpForm(),
+                          ],
                         ),
-                      // .animate().fadeIn(),
-                      if (isSignUp)
-                        Expanded(
-                          child: Container(
-                            // color: ColorApp.duronQuartzWhite,
-                            height: height * 0.7,
-                            width: width * 0.7 * 0.48,
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10)),
-                            // color: ColorApp.duronQuartzWhite,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 1),
-                                  child: AspectRatio(
-                                    aspectRatio: 32 / 6,
-                                    child: Container(
-                                      // color: Colors.pink,
-                                      child: SvgPicture.asset(
-                                        'assets/svg/logo_fdsm.svg',
-                                        // color: Colors.pink,
-                                        fit: BoxFit.scaleDown,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                const Text(
-                                  'Firebase IoT Device System Manager',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                Center(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/picture/logotk.png',
-                                        scale: 6,
-                                      ),
-                                      // ImageNetwork(
-                                      //     image:
-                                      //         'https://firebasestorage.googleapis.com/v0/b/project-st-iot.appspot.com/o/default_asset%2Flogotk.png?alt=media&token=e1caacd3-3b51-4942-b658-95276bc4ce93',
-                                      //     height: height,
-                                      //     width: width),
-                                      Container(
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                            border: Border.symmetric(
-                                                vertical: BorderSide(
-                                                    width: 1,
-                                                    color:
-                                                        ColorApp.lapisLazuli))),
-                                      ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      // ImageNetwork(
-                                      //     fitWeb: BoxFitWeb.scaleDown,
-                                      //     image:
-                                      //         'https://firebasestorage.googleapis.com/v0/b/project-st-iot.appspot.com/o/default_asset%2Flogoupi.png?alt=media&token=e4353c72-1fde-40f1-b286-c3b2c1a5a04e',
-                                      //     height: height,
-                                      //     width: width)
-                                      Image.asset(
-                                        'assets/picture/logoupi.png',
-                                        scale: 12,
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ).animate().fadeIn(),
-
-                      //form sign up
-                      if (isSignUp)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: 40, left: 8, right: 8, bottom: 8),
-                          // padding: const EdgeInsets.all(8.0),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // const SizedBox(height: 32),
-                                // Text(data)
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    "Sign Up",
-                                    style: TextStyle(
-                                        color: ColorApp.lapisLazuli,
-                                        fontSize: 25,
-                                        fontFamily: "Nunito",
-                                        fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                                Align(
-                                    alignment: Alignment.bottomLeft,
-                                    child: Text(
-                                      "Please Sign Up to Continue",
-                                      style: TextStyle(
-                                          color: ColorApp.lapisLazuli,
-                                          fontFamily: "Nunito"),
-                                    )),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                SizedBox(
-                                  height: 50,
-                                  width: width * 0.7 * 0.48,
-                                  child: TextField(
-                                      controller: namecont,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        prefixIconColor: ColorApp.lapisLazuli,
-                                        labelStyle: TextStyle(
-                                            color: ColorApp.lapisLazuli),
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1.0,
-                                                color: ColorApp.lapisLazuli),
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(10))),
-                                        focusColor: ColorApp.lapisLazuli,
-                                        border: const OutlineInputBorder(
-                                            borderSide: BorderSide(width: 1.0),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(10))),
-                                        labelText: 'Name',
-                                        hintText: 'Enter Your Name',
-                                        prefixIcon: const Icon(Icons.person),
-                                      )),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                SizedBox(
-                                  height: 50,
-                                  width: width * 0.7 * 0.48,
-                                  child: TextField(
-                                      controller: signUpemailCont,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        prefixIconColor: ColorApp.lapisLazuli,
-                                        labelStyle: TextStyle(
-                                            color: ColorApp.lapisLazuli),
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1.0,
-                                                color: ColorApp.lapisLazuli),
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(10))),
-                                        focusColor: ColorApp.lapisLazuli,
-                                        border: const OutlineInputBorder(
-                                            borderSide: BorderSide(width: 1.0),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(10))),
-                                        labelText: 'Email',
-                                        hintText: 'Enter Your Email',
-                                        prefixIcon:
-                                            const Icon(Icons.email_rounded),
-                                      )),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                SizedBox(
-                                  height: 50,
-                                  // width: 200,
-                                  width: width * 0.7 * 0.48,
-                                  child: TextField(
-                                      controller: signUpPasswordCont,
-                                      obscureText: hidePw,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        prefixIconColor: ColorApp.lapisLazuli,
-                                        labelStyle: TextStyle(
-                                            color: ColorApp.lapisLazuli),
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1.0,
-                                                color: ColorApp.lapisLazuli),
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(10))),
-                                        focusColor: ColorApp.lapisLazuli,
-                                        border: const OutlineInputBorder(
-                                            borderSide: BorderSide(width: 1.0),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(10))),
-                                        labelText: 'Password',
-                                        hintText: 'Enter Your Password',
-                                        prefixIcon:
-                                            const Icon(Icons.password_rounded),
-                                        suffixIcon: IconButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                hidePw = !hidePw;
-                                              });
-                                            },
-                                            icon: Icon(hidePw
-                                                ? Icons.visibility_rounded
-                                                : Icons
-                                                    .visibility_off_rounded)),
-                                      )),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                SizedBox(
-                                  height: 50,
-                                  // width: 200,
-                                  width: width * 0.7 * 0.48,
-                                  child: TextField(
-                                      controller: rePasswordCont,
-                                      obscureText: reHidePw,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        prefixIconColor: ColorApp.lapisLazuli,
-                                        labelStyle: TextStyle(
-                                            color: ColorApp.lapisLazuli),
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1.0,
-                                                color: ColorApp.lapisLazuli),
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(10))),
-                                        focusColor: ColorApp.lapisLazuli,
-                                        border: const OutlineInputBorder(
-                                            borderSide: BorderSide(width: 1.0),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(10))),
-                                        labelText: 'Repeat Password',
-                                        hintText: 'Repeat Your Password',
-                                        prefixIcon:
-                                            const Icon(Icons.password_rounded),
-                                        suffixIcon: IconButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                reHidePw = !reHidePw;
-                                              });
-                                            },
-                                            icon: Icon(reHidePw
-                                                ? Icons.visibility_rounded
-                                                : Icons
-                                                    .visibility_off_rounded)),
-                                      )),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                if (isLoading)
-                                  SizedBox(
-                                    width: width * 0.7 * 0.48,
-                                    height: 50,
-                                    child: Center(
-                                        child: LinearProgressIndicator(
-                                      color: ColorApp.lapisLazuli,
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(100)),
-                                    )),
-                                  ),
-                                if (isLoading)
-                                  SizedBox(
-                                    width: width * 0.7 * 0.48,
-                                    height: 60,
-                                  ),
-
-                                if (!isLoading)
-                                  SizedBox(
-                                    width: width * 0.7 * 0.48,
-                                    height: 50,
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        if (signUpemailCont.text.isEmpty ||
-                                            signUpPasswordCont.text.isEmpty) {
-                                          Get.snackbar("Warning",
-                                              "Email and Password can't be empty",
-                                              backgroundColor: Colors.white,
-                                              icon: const Icon(Icons.error));
-                                        } else if (signUpemailCont.text.length <
-                                                6 ||
-                                            signUpPasswordCont.text.length <
-                                                6) {
-                                          Get.snackbar("Warning",
-                                              "Password Length Must be Greater than 6",
-                                              backgroundColor: Colors.white,
-                                              icon: const Icon(Icons.error));
-                                        } else if (signUpPasswordCont.text !=
-                                            rePasswordCont.text) {
-                                          Get.snackbar("Warning",
-                                              "Password does not match",
-                                              backgroundColor: Colors.white,
-                                              icon: const Icon(Icons.error));
-                                        } else {
-                                          await signUpEmailAndPassword();
-                                        }
-                                      },
-                                      // onPressed: areFieldsFilled()
-                                      //     ? () => logInEmailAndPassword()
-                                      //     : null,
-                                      // : () => Get.snackbar("Warning",
-                                      //     "Email and Password can't be empty",
-                                      //     backgroundColor: Colors.white,
-                                      //     icon: const Icon(Icons.error)),
-                                      // onPressed: () => logInEmailAndPassword(),
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: ColorApp.lapisLazuli,
-                                          // minimumSize: const Size.fromHeight(50),
-                                          shape: const RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(10)))),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "Sign Up",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontFamily: "Nunito",
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                          Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: Colors.white,
-                                            size: 20,
-                                            weight: 700,
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                if (!isLoading)
-                                  SizedBox(
-                                    width: width * 0.7 * 0.48,
-                                    child: const Align(
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          'Or',
-                                          style:
-                                              TextStyle(fontFamily: 'Nunito'),
-                                        )),
-                                  ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                if (!isLoading)
-                                  SizedBox(
-                                    // width: double.infinity,
-                                    width: width * 0.7 * 0.48,
-                                    height: 50,
-                                    child: InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          isSignUp = !isSignUp;
-                                        });
-                                      },
-                                      child: Container(
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              border: Border.all(
-                                                  width: 1,
-                                                  color: ColorApp.lapisLazuli)),
-                                          child: Center(
-                                            child: Text(
-                                              'Sign In',
-                                              style: TextStyle(
-                                                  color: ColorApp.lapisLazuli,
-                                                  fontFamily: "Nunito",
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w700),
-                                            ),
-                                          )),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
+                      ),
+                    ),
                   ),
-                ).animate().fadeIn(),
+
+                  // Right Panel - Branding
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            ColorApp.lapisLazuli.withValues(alpha: 0.1),
+                            ColorApp.lapisLazuli.withValues(alpha: 0.05),
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 40),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 3,
+                              child: SvgPicture.asset(
+                                'assets/svg/logo_fdsm.svg',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 40),
+                            child: Text(
+                              'Firebase IoT Device System Manager',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                color: ColorApp.lapisLazuli,
+                                fontFamily: "Nunito",
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Image.asset(
+                                  'assets/picture/logotk.png',
+                                  height: 60,
+                                  width: 60,
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Container(
+                                height: 60,
+                                width: 2,
+                                decoration: BoxDecoration(
+                                  color: ColorApp.lapisLazuli
+                                      .withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(1),
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Image.asset(
+                                  'assets/picture/logoupi.png',
+                                  height: 60,
+                                  width: 60,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn(duration: 800.ms),
+                  ),
+                ],
               ),
             ),
+          ).animate().scale(duration: 600.ms).fadeIn(duration: 400.ms),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSignInForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Welcome back!",
+          style: TextStyle(
+            color: ColorApp.lapisLazuli,
+            fontSize: 32,
+            fontFamily: "Nunito",
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Please sign in to continue",
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 16,
+            fontFamily: "Nunito",
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(height: 40),
+        _buildTextField(
+          controller: emailCont,
+          labelText: 'Email Address',
+          hintText: 'Enter your email',
+          prefixIcon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: passwordCont,
+          labelText: 'Password',
+          hintText: 'Enter your password',
+          prefixIcon: Icons.lock_outline,
+          obscureText: hidePw,
+          suffixIcon: IconButton(
+            onPressed: () => setState(() => hidePw = !hidePw),
+            icon: Icon(
+              hidePw
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: ColorApp.lapisLazuli,
+            ),
+          ),
+        ),
+        const SizedBox(height: 32),
+        if (isLoading)
+          Container(
+            width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: ColorApp.lapisLazuli,
+                strokeWidth: 3,
+              ),
+            ),
+          )
+        else
+          _buildPrimaryButton(
+            text: 'Sign In',
+            onPressed: () async {
+              if (emailCont.text.isEmpty || passwordCont.text.isEmpty) {
+                _showErrorSnackbar("Email and Password can't be empty");
+              } else if (emailCont.text.length < 5 ||
+                  passwordCont.text.length < 6) {
+                _showErrorSnackbar("Password must be at least 6 characters");
+              } else {
+                await logInEmailAndPassword();
+              }
+            },
+          ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(child: Divider(color: Colors.grey[300])),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'OR',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Expanded(child: Divider(color: Colors.grey[300])),
           ],
-        ));
+        ),
+        const SizedBox(height: 24),
+        _buildSecondaryButton(
+          text: "Don't have an account? Sign Up",
+          onPressed: () => setState(() => isSignUp = true),
+        ),
+      ],
+    ).animate().slideX(duration: 400.ms).fadeIn();
+  }
+
+  Widget _buildSignUpForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Create Account",
+          style: TextStyle(
+            color: ColorApp.lapisLazuli,
+            fontSize: 32,
+            fontFamily: "Nunito",
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Please fill in the details to get started",
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 16,
+            fontFamily: "Nunito",
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildTextField(
+          controller: namecont,
+          labelText: 'Full Name',
+          hintText: 'Enter your full name',
+          prefixIcon: Icons.person_outline,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: signUpemailCont,
+          labelText: 'Email Address',
+          hintText: 'Enter your email',
+          prefixIcon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: signUpPasswordCont,
+          labelText: 'Password',
+          hintText: 'Enter your password',
+          prefixIcon: Icons.lock_outline,
+          obscureText: hidePw,
+          suffixIcon: IconButton(
+            onPressed: () => setState(() => hidePw = !hidePw),
+            icon: Icon(
+              hidePw
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: ColorApp.lapisLazuli,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: rePasswordCont,
+          labelText: 'Confirm Password',
+          hintText: 'Repeat your password',
+          prefixIcon: Icons.lock_outline,
+          obscureText: reHidePw,
+          suffixIcon: IconButton(
+            onPressed: () => setState(() => reHidePw = !reHidePw),
+            icon: Icon(
+              reHidePw
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: ColorApp.lapisLazuli,
+            ),
+          ),
+        ),
+        const SizedBox(height: 32),
+        if (isLoading)
+          Container(
+            width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: ColorApp.lapisLazuli,
+                strokeWidth: 3,
+              ),
+            ),
+          )
+        else
+          _buildPrimaryButton(
+            text: 'Create Account',
+            onPressed: () async {
+              if (signUpemailCont.text.isEmpty ||
+                  signUpPasswordCont.text.isEmpty ||
+                  namecont.text.isEmpty) {
+                _showErrorSnackbar("All fields are required");
+              } else if (signUpemailCont.text.length < 6 ||
+                  signUpPasswordCont.text.length < 6) {
+                _showErrorSnackbar("Password must be at least 6 characters");
+              } else if (signUpPasswordCont.text != rePasswordCont.text) {
+                _showErrorSnackbar("Passwords do not match");
+              } else {
+                await signUpEmailAndPassword();
+              }
+            },
+          ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(child: Divider(color: Colors.grey[300])),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'OR',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Expanded(child: Divider(color: Colors.grey[300])),
+          ],
+        ),
+        const SizedBox(height: 24),
+        _buildSecondaryButton(
+          text: "Already have an account? Sign In",
+          onPressed: () => setState(() => isSignUp = false),
+        ),
+      ],
+    ).animate().slideX(duration: 400.ms, begin: -0.2).fadeIn();
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required String hintText,
+    required IconData prefixIcon,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    TextInputType? keyboardType,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        style: const TextStyle(
+          fontSize: 16,
+          fontFamily: "Nunito",
+        ),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey[50],
+          labelText: labelText,
+          hintText: hintText,
+          prefixIcon: Icon(prefixIcon, color: ColorApp.lapisLazuli),
+          suffixIcon: suffixIcon,
+          labelStyle: TextStyle(
+            color: ColorApp.lapisLazuli,
+            fontFamily: "Nunito",
+            fontWeight: FontWeight.w500,
+          ),
+          hintStyle: TextStyle(
+            color: Colors.grey[400],
+            fontFamily: "Nunito",
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.grey[200]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.grey[200]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: ColorApp.lapisLazuli, width: 2),
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrimaryButton({
+    required String text,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            ColorApp.lapisLazuli,
+            ColorApp.lapisLazuli.withValues(alpha: 0.8),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: ColorApp.lapisLazuli.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onPressed,
+          child: Center(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontFamily: "Nunito",
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryButton({
+    required String text,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ColorApp.lapisLazuli.withValues(alpha: 0.3)),
+        color: Colors.transparent,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onPressed,
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: ColorApp.lapisLazuli,
+                fontSize: 16,
+                fontFamily: "Nunito",
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorSnackbar(String message) {
+    Get.snackbar(
+      "Error",
+      message,
+      backgroundColor: Colors.red[50],
+      colorText: Colors.red[700],
+      icon: Icon(Icons.error_outline, color: Colors.red[700]),
+      snackPosition: SnackPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      duration: const Duration(seconds: 3),
+    );
   }
 }

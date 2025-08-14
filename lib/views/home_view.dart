@@ -2,11 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:image_network/image_network.dart';
 import 'package:ta_web/classes/colors_cl.dart';
-import 'package:ta_web/models/user_model.dart';
 import 'package:ta_web/services/auth_service.dart';
 import 'package:ta_web/services/dashboard_service.dart';
 import 'package:ta_web/services/devices_service.dart';
@@ -128,568 +128,1107 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(8.0),
+          ? Center(
+              child: Container(
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      color: ColorApp.lapisLazuli,
+                      strokeWidth: 3,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Loading your dashboard...',
+                      style: TextStyle(
+                        color: ColorApp.lapisLazuli,
+                        fontSize: 16,
+                        fontFamily: "Nunito",
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
-                    children: [
-                      // Icon(
-                      //   Icons.home,
-                      //   size: 30,
-                      // ),
-                      // SizedBox(
-                      //   width: 5,
-                      // ),
-                      Text(
-                        'Home',
-                        style: TextStyle(fontSize: 30),
-                      ),
-                    ],
+                  // Header
+                  _buildHeader(),
+                  const SizedBox(height: 32),
+
+                  // Welcome Card
+                  _buildWelcomeCard(),
+                  const SizedBox(height: 32),
+
+                  // Main Content Grid
+                  _buildMainContent(),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                ColorApp.lapisLazuli,
+                ColorApp.lapisLazuli.withValues(alpha: 0.8),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: ColorApp.lapisLazuli.withValues(alpha: 0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.home_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Text(
+          'Dashboard',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w800,
+            color: ColorApp.lapisLazuli,
+            fontFamily: "Nunito",
+          ),
+        ),
+        const Spacer(),
+        // _buildNotificationButton(),
+      ],
+    ).animate().fadeIn(duration: 300.ms);
+  }
+
+  // Widget _buildNotificationButton() {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withValues(alpha: 0.1),
+  //           blurRadius: 10,
+  //           offset: const Offset(0, 4),
+  //         ),
+  //       ],
+  //     ),
+  //     child: IconButton(
+  //       onPressed: () {},
+  //       icon: Icon(
+  //         Icons.notifications_outlined,
+  //         color: ColorApp.lapisLazuli,
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Widget _buildWelcomeCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            ColorApp.lapisLazuli,
+            ColorApp.lapisLazuli.withValues(alpha: 0.8),
+            ColorApp.lapisLazuli.withValues(alpha: 0.9),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: ColorApp.lapisLazuli.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _buildProfileImage(),
+          const SizedBox(width: 24),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome back,',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontFamily: "Nunito",
+                    fontWeight: FontWeight.w500,
                   ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.3,
-                    decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                              color: ColorApp.lapisLazuli,
-                              spreadRadius: 2,
-                              blurRadius: 4,
-                              blurStyle: BlurStyle.inner,
-                              offset: const Offset(0, 5))
-                        ],
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            width: 1,
-                            color: ColorApp.lapisLazuli.withOpacity(0.5))),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30),
-                        child: Row(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(100),
-                                  border: Border.all(
-                                    width: 3,
-                                    color: ColorApp.lapisLazuli,
-                                  )),
-                              child: Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Container(
-                                  height: 120,
-                                  width: 120,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(100)),
-                                  child: userSetting['profile_pic'] != null
-                                      ? ImageNetwork(
-                                          image: userSetting['profile_pic'],
-                                          height: 120,
-                                          width: 120,
-                                          borderRadius:
-                                              BorderRadius.circular(100),
-                                        )
-                                      : ImageNetwork(
-                                          borderRadius:
-                                              BorderRadius.circular(100),
-                                          image:
-                                              'https://firebasestorage.googleapis.com/v0/b/project-st-iot.appspot.com/o/default_asset%2Fdefaultpfp.png?alt=media&token=882c5086-0c64-4285-b452-ca0b021707b6',
-                                          height: 120,
-                                          width: 120),
-                                ),
-                                // child: CircleAvatar(
-                                //   radius: 60,
-                                //   // child: Icon(Icons.person),
-                                //   backgroundImage: userSetting['profile_pic'] !=
-                                //           null
-                                //       ? NetworkImage(userSetting['profile_pic'])
-                                //       : const NetworkImage(
-                                //           'https://firebasestorage.googleapis.com/v0/b/project-st-iot.appspot.com/o/default_asset%2Fdefaultpfp.png?alt=media&token=882c5086-0c64-4285-b452-ca0b021707b6'),
-                                // ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Welcome Back, ${userInfo['username']}!',
-                                  style: const TextStyle(
-                                      fontSize: 35,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                const Text(
-                                  'What can we assist you with today?',
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                              ],
-                            ),
-                          ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  userInfo['username'] ?? 'User',
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    fontFamily: "Nunito",
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'What can we assist you with today?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontFamily: "Nunito",
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildStatsOverview(),
+        ],
+      ),
+    ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+  }
+
+  Widget _buildProfileImage() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.3), width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(17),
+        child: SizedBox(
+          height: 140,
+          width: 140,
+          child: userSetting['profile_pic'] != null
+              ? ImageNetwork(
+                  image: userSetting['profile_pic'],
+                  height: 140,
+                  width: 140,
+                  borderRadius: BorderRadius.circular(17),
+                )
+              : ImageNetwork(
+                  borderRadius: BorderRadius.circular(17),
+                  image:
+                      'https://firebasestorage.googleapis.com/v0/b/project-st-iot.appspot.com/o/default_asset%2Fdefaultpfp.png?alt=media&token=882c5086-0c64-4285-b452-ca0b021707b6',
+                  height: 140,
+                  width: 140,
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsOverview() {
+    return Column(
+      children: [
+        _buildStatItem('Dashboards', dashboardList.length.toString(),
+            Icons.dashboard_outlined),
+        const SizedBox(height: 16),
+        _buildStatItem(
+            'Devices', devicesList.length.toString(), Icons.devices_outlined),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon) {
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 24),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  fontFamily: "Nunito",
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontFamily: "Nunito",
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dashboards Section
+            Expanded(
+              child: _buildDashboardsCard(),
+            ),
+            const SizedBox(width: 16),
+
+            // Devices Section
+            Expanded(
+              child: _buildDevicesCard(),
+            ),
+            const SizedBox(width: 16),
+
+            // Settings Section
+            Expanded(
+              child: _buildSettingsCard(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDevicesCard() {
+    return Container(
+      height: 500,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.devices_outlined,
+                    color: ColorApp.lapisLazuli,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Your Devices',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: ColorApp.lapisLazuli,
+                    fontFamily: "Nunito",
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(color: Colors.grey[200], height: 1),
+          Expanded(
+            child: _buildDevicesList(),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 300.ms, delay: 150.ms);
+  }
+
+  Widget _buildDevicesList() {
+    if (devicesList.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: SvgPicture.asset(
+                '../assets/svg/notfound.svg',
+                height: 80,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'No Devices Found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+                fontFamily: "Nunito",
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Connect your first device to get started',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontFamily: "Nunito",
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: devicesList.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        var device = devicesList[index];
+        return _buildDeviceItem(device);
+      },
+    );
+  }
+
+  Widget _buildDeviceItem(Map<String, dynamic> device) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: StreamBuilder(
+          stream: FirebaseDatabase.instance
+              .ref()
+              .child('devices/${device['id']}/status/status')
+              .onValue,
+          builder: (context, AsyncSnapshot snapshot) {
+            Widget statusIndicator;
+            if (snapshot.hasData) {
+              var status = snapshot.data.snapshot.value;
+              if (status == null || status == 'offline') {
+                statusIndicator = Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.circle,
+                    color: Colors.red[600],
+                    size: 12,
+                  ),
+                );
+              } else {
+                statusIndicator = Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.circle,
+                    color: Colors.green[600],
+                    size: 12,
+                  ),
+                );
+              }
+            } else {
+              statusIndicator = Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.circle,
+                  color: Colors.grey[400],
+                  size: 12,
+                ),
+              );
+            }
+
+            return Tooltip(
+              message: snapshot.hasData
+                  ? (snapshot.data.snapshot.value == null ||
+                          snapshot.data.snapshot.value == 'offline'
+                      ? 'Offline'
+                      : 'Online')
+                  : 'Loading...',
+              child: statusIndicator,
+            );
+          },
+        ),
+        title: Text(
+          device['device_name'],
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: "Nunito",
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: Colors.grey[400],
+          size: 16,
+        ),
+        onTap: () {
+          Get.to(
+            transition: Transition.rightToLeftWithFade,
+            DeviceDetail(
+              deviceName: device['device_name'],
+              deviceID: device['id'],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSettingsCard() {
+    return Container(
+      height: 500,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.settings_outlined,
+                    color: ColorApp.lapisLazuli,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Settings',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: ColorApp.lapisLazuli,
+                    fontFamily: "Nunito",
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(color: Colors.grey[200], height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // _buildSettingsItem(
+                  //   icon: Icons.person_outline,
+                  //   title: 'Profile',
+                  //   subtitle: 'Manage your account',
+                  //   onTap: () {},
+                  // ),
+                  // const SizedBox(height: 12),
+                  // _buildSettingsItem(
+                  //   icon: Icons.notifications_outlined,
+                  //   title: 'Notifications',
+                  //   subtitle: 'Configure alerts',
+                  //   onTap: () {},
+                  // ),
+                  // const SizedBox(height: 12),
+                  // _buildSettingsItem(
+                  //   icon: Icons.security_outlined,
+                  //   title: 'Security',
+                  //   subtitle: 'Privacy & security',
+                  //   onTap: () {},
+                  // ),
+                  // const SizedBox(height: 12),
+                  // Divider(color: Colors.grey[200]),
+                  // const SizedBox(height: 12),
+                  _buildSettingsItem(
+                    icon: Icons.logout_outlined,
+                    title: 'Sign Out',
+                    subtitle: 'Logout from your account',
+                    onTap: _showLogoutDialog,
+                    isDestructive: true,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 300.ms, delay: 250.ms);
+  }
+
+  Widget _buildSettingsItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDestructive
+                ? Colors.red[50]
+                : ColorApp.lapisLazuli.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: isDestructive ? Colors.red[600] : ColorApp.lapisLazuli,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: "Nunito",
+            color: isDestructive ? Colors.red[600] : null,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontFamily: "Nunito",
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: Colors.grey[400],
+          size: 16,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  void _showDeleteDashboardDialog(Map<String, dynamic> dashboard) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 300, // Make dialog width shorter
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Icon(
+                  Icons.warning_outlined,
+                  color: Colors.red[600],
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Delete Dashboard',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: ColorApp.lapisLazuli,
+                  fontFamily: "Nunito",
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Are you sure you want to delete "${dashboard['dashboard_name']}"?\nThis action cannot be undone.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontFamily: "Nunito",
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Column instead of Row for buttons
+              Container(
+                height: 50,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => Get.back(),
+                    child: const Center(
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontFamily: "Nunito",
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 19.7,
-                  ),
-                  SizedBox(
-                    width: Get.width,
-                    height: Get.height * 0.666666667 - 53,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        // Calculate the width for each container based on the available width
-                        double containerWidth = constraints.maxWidth / 3 - 10;
-
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    width: 1,
-                                    color:
-                                        ColorApp.lapisLazuli.withOpacity(0.5)),
-                              ),
-                              width: containerWidth,
-                              height: double.infinity,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Your Dashboards',
-                                      style: TextStyle(fontSize: 25),
-                                    ),
-                                    if (isDashboardLoading)
-                                      const Center(
-                                          child: CircularProgressIndicator()),
-                                    if (!isDashboardLoading &&
-                                        dashboardList.isEmpty)
-                                      Expanded(
-                                        child: Center(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              SizedBox(
-                                                height: 120,
-                                                child: SvgPicture.asset(
-                                                  '../assets/svg/notfound.svg',
-                                                ),
-                                              ),
-                                              const Text(
-                                                'No Dashboard Created',
-                                                style: TextStyle(
-                                                    fontSize: 18,
-                                                    color: Colors.black),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    if (!isDashboardLoading &&
-                                        dashboardList.isNotEmpty)
-                                      Expanded(
-                                        child: ListView.builder(
-                                          itemCount: dashboardList.length,
-                                          shrinkWrap: true,
-                                          itemBuilder: (context, index) {
-                                            var db = dashboardList[index];
-                                            // print(db);
-
-                                            return Container(
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10)),
-                                              child: ListTile(
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10)),
-                                                onTap: () {},
-                                                title:
-                                                    Text(db['dashboard_name']),
-                                                trailing:
-                                                    PopupMenuButton<String>(
-                                                  icon: const Icon(Icons
-                                                      .more_horiz_outlined),
-                                                  onSelected: (value) {
-                                                    if (value == 'delete') {
-                                                      Get.defaultDialog(
-                                                          title:
-                                                              'Delete Dashboard?',
-                                                          content:
-                                                              isDashboardLoading
-                                                                  ? Center(
-                                                                      child:
-                                                                          CircularProgressIndicator(
-                                                                      color: ColorApp
-                                                                          .lapisLazuli,
-                                                                    ))
-                                                                  : Column(
-                                                                      children: [
-                                                                        Text(
-                                                                            'Are you sure want to delete ${db['dashboard_name']}? '),
-                                                                        const SizedBox(
-                                                                          height:
-                                                                              10,
-                                                                        ),
-                                                                        SizedBox(
-                                                                          height:
-                                                                              50,
-                                                                          width:
-                                                                              double.infinity,
-                                                                          child: ElevatedButton(
-                                                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.white, shape: RoundedRectangleBorder(side: BorderSide(width: 1, color: ColorApp.lapisLazuli), borderRadius: const BorderRadius.all(Radius.circular(10)))),
-                                                                              onPressed: () async {
-                                                                                try {
-                                                                                  await DashboardService().deleteDashboard(db['id']);
-                                                                                } catch (e) {
-                                                                                  print(e);
-                                                                                } finally {
-                                                                                  await refreshDashboard();
-                                                                                  Get.back();
-                                                                                }
-                                                                              },
-                                                                              child: Text(
-                                                                                'Yes',
-                                                                                style: TextStyle(color: ColorApp.lapisLazuli),
-                                                                              )),
-                                                                        ),
-                                                                        const SizedBox(
-                                                                          height:
-                                                                              5,
-                                                                        ),
-                                                                        SizedBox(
-                                                                          height:
-                                                                              50,
-                                                                          width:
-                                                                              double.infinity,
-                                                                          child: ElevatedButton(
-                                                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, shape: const RoundedRectangleBorder(side: BorderSide(width: 1, color: Colors.red), borderRadius: BorderRadius.all(Radius.circular(10)))),
-                                                                              onPressed: () {
-                                                                                Get.back();
-                                                                              },
-                                                                              child: const Text(
-                                                                                'No',
-                                                                                style: TextStyle(color: Colors.white),
-                                                                              )),
-                                                                        )
-                                                                      ],
-                                                                    ));
-                                                    }
-                                                  },
-                                                  itemBuilder: (context) => [
-                                                    const PopupMenuItem<String>(
-                                                      value: 'delete',
-                                                      child: ListTile(
-                                                        leading:
-                                                            Icon(Icons.delete),
-                                                        title: Text('Delete'),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    width: 1,
-                                    color:
-                                        ColorApp.lapisLazuli.withOpacity(0.5)),
-                              ),
-                              width: containerWidth,
-                              height: double.infinity,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Your Devices',
-                                      style: TextStyle(fontSize: 25),
-                                    ),
-                                    if (devicesList.isEmpty)
-                                      Expanded(
-                                        child: Center(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              SizedBox(
-                                                height: 120,
-                                                child: SvgPicture.asset(
-                                                  '../assets/svg/notfound.svg',
-                                                ),
-                                              ),
-                                              const Text(
-                                                'No Device FOund',
-                                                style: TextStyle(
-                                                    fontSize: 18,
-                                                    color: Colors.black),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    else
-                                      Expanded(
-                                        child: ListView.builder(
-                                          itemCount: devicesList.length,
-                                          shrinkWrap: true,
-                                          itemBuilder: (context, index) {
-                                            var db = devicesList[index];
-
-                                            return Container(
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10)),
-                                              child: ListTile(
-                                                // leading: Icon(Icons.circle),
-
-                                                leading: StreamBuilder(
-                                                  stream: FirebaseDatabase
-                                                      .instance
-                                                      .ref()
-                                                      .child(
-                                                          'devices/${db['id']}/status/status')
-                                                      .onValue,
-                                                  builder: (context,
-                                                      AsyncSnapshot snapshot) {
-                                                    if (snapshot.hasData) {
-                                                      var status = snapshot
-                                                          .data.snapshot.value;
-
-                                                      if (status == null ||
-                                                          status == 'offline') {
-                                                        return const Tooltip(
-                                                          message: 'Offline',
-                                                          child: Icon(
-                                                            Icons.circle_sharp,
-                                                            color: Colors.red,
-                                                            size: 18,
-                                                          ),
-                                                        );
-                                                      } else {
-                                                        return const Tooltip(
-                                                          message: 'Online',
-                                                          child: Icon(
-                                                            Icons.circle_sharp,
-                                                            color: Colors.green,
-                                                            size: 18,
-                                                          ),
-                                                        );
-                                                      }
-                                                    } else if (snapshot
-                                                        .hasError) {
-                                                      return const Tooltip(
-                                                        message: 'Loading...',
-                                                        child: Icon(
-                                                          Icons.circle_sharp,
-                                                          color: Colors.grey,
-                                                          size: 18,
-                                                        ),
-                                                      );
-                                                    } else {
-                                                      return const Icon(
-                                                        Icons.circle_sharp,
-                                                        color: Colors.grey,
-                                                        size: 18,
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10)),
-                                                onTap: () {
-                                                  Get.to(
-                                                      transition: Transition
-                                                          .rightToLeftWithFade,
-                                                      DeviceDetail(
-                                                          deviceName:
-                                                              db['device_name'],
-                                                          deviceID: db['id']));
-                                                },
-                                                title: Text(db['device_name']),
-                                                // trailing: IconButton(
-                                                //     onPressed: () {},
-                                                //     icon: const Icon(Icons
-                                                //         .more_horiz_outlined)),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    width: 1,
-                                    color:
-                                        ColorApp.lapisLazuli.withOpacity(0.5)),
-                              ),
-                              width: containerWidth,
-                              height: double.infinity,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Settings',
-                                      style: TextStyle(fontSize: 25),
-                                    ),
-                                    ListTile(
-                                      trailing: Icon(
-                                        Icons.logout_outlined,
-                                        color: ColorApp.lapisLazuli,
-                                      ),
-                                      // hoverColor: ColorApp.lapisLazuli,
-
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                      title: const Text('Logout'),
-                                      onTap: () {
-                                        Get.defaultDialog(
-                                            // middleTextStyle: const TextStyle(fontSize: 120),
-                                            title: 'Log Out?',
-                                            // middleText: 'Are you sure want to delete $widgetName?',
-                                            content: Container(
-                                              // width: 40,
-                                              // color: Colors.amber,
-                                              child: Column(
-                                                children: [
-                                                  const Text(
-                                                    'Are you sure want to sign out?',
-                                                    style:
-                                                        TextStyle(fontSize: 18),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 10,
-                                                  ),
-                                                  SizedBox(
-                                                    height: 50,
-                                                    width: double.infinity,
-                                                    child: ElevatedButton(
-                                                        style: ElevatedButton.styleFrom(
-                                                            backgroundColor:
-                                                                Colors.white,
-                                                            shape: RoundedRectangleBorder(
-                                                                side: BorderSide(
-                                                                    width: 1,
-                                                                    color: ColorApp
-                                                                        .lapisLazuli),
-                                                                borderRadius:
-                                                                    const BorderRadius
-                                                                        .all(
-                                                                        Radius.circular(
-                                                                            10)))),
-                                                        onPressed: () {
-                                                          try {
-                                                            Auth().signOut();
-                                                          } catch (e) {
-                                                            print(e);
-                                                          } finally {
-                                                            Get.back();
-                                                          }
-                                                        },
-                                                        child: Text(
-                                                          'Yes',
-                                                          style: TextStyle(
-                                                              color: ColorApp
-                                                                  .lapisLazuli),
-                                                        )),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  SizedBox(
-                                                    height: 50,
-                                                    width: double.infinity,
-                                                    child: ElevatedButton(
-                                                        style: ElevatedButton.styleFrom(
-                                                            backgroundColor:
-                                                                Colors.red,
-                                                            shape: const RoundedRectangleBorder(
-                                                                side: BorderSide(
-                                                                    width: 1,
-                                                                    color: Colors
-                                                                        .red),
-                                                                borderRadius: BorderRadius
-                                                                    .all(Radius
-                                                                        .circular(
-                                                                            10)))),
-                                                        onPressed: () {
-                                                          Get.back();
-                                                        },
-                                                        child: const Text(
-                                                          'No',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white),
-                                                        )),
-                                                  )
-                                                ],
-                                              ),
-                                            ));
-                                      },
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                ),
+              ),
+              const SizedBox(height: 12), // Vertical spacing between buttons
+              Container(
+                height: 50,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.red[600],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () async {
+                      try {
+                        await DashboardService()
+                            .deleteDashboard(dashboard['id']);
+                        await refreshDashboard();
+                        Get.back();
+                        Get.snackbar(
+                          'Success',
+                          'Dashboard deleted successfully',
+                          backgroundColor: Colors.green[50],
+                          colorText: Colors.green[700],
+                          snackPosition: SnackPosition.TOP,
+                          margin: const EdgeInsets.all(16),
+                          borderRadius: 12,
                         );
-                      },
+                      } catch (e) {
+                        Get.back();
+                        Get.snackbar(
+                          'Error',
+                          'Failed to delete dashboard',
+                          backgroundColor: Colors.red[50],
+                          colorText: Colors.red[700],
+                          snackPosition: SnackPosition.TOP,
+                          margin: const EdgeInsets.all(16),
+                          borderRadius: 12,
+                        );
+                      }
+                    },
+                    child: const Center(
+                      child: Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Nunito",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  )
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 300, // Limit the width to make dialog smaller
+          padding: const EdgeInsets.all(20), // Reduce padding
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12), // Reduce padding
+                decoration: BoxDecoration(
+                  color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Icon(
+                  Icons.logout_outlined,
+                  color: ColorApp.lapisLazuli,
+                  size: 28, // Slightly smaller icon
+                ),
+              ),
+              const SizedBox(height: 16), // Reduced spacing
+              Text(
+                'Sign Out',
+                style: TextStyle(
+                  fontSize: 20, // Slightly smaller text
+                  fontWeight: FontWeight.w700,
+                  color: ColorApp.lapisLazuli,
+                  fontFamily: "Nunito",
+                ),
+              ),
+              const SizedBox(height: 8), // Reduced spacing
+              Text(
+                'Are you sure you want to sign out of your account?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14, // Smaller text
+                  color: Colors.grey[600],
+                  fontFamily: "Nunito",
+                ),
+              ),
+              const SizedBox(height: 16), // Reduced spacing
+
+              // Cancel button
+              Container(
+                height: 45, // Slightly shorter button
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => Get.back(),
+                    child: const Center(
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontFamily: "Nunito",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10), // Space between buttons
+
+              // Sign Out button
+              Container(
+                height: 45, // Slightly shorter button
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      ColorApp.lapisLazuli,
+                      ColorApp.lapisLazuli.withValues(alpha: 0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      try {
+                        Auth().signOut();
+                        Get.back();
+                      } catch (e) {
+                        print(e);
+                        Get.back();
+                      }
+                    },
+                    child: const Center(
+                      child: Text(
+                        'Sign Out',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Nunito",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashboardsCard() {
+    return Container(
+      height: 500,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.dashboard_outlined,
+                    color: ColorApp.lapisLazuli,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Your Dashboards',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: ColorApp.lapisLazuli,
+                    fontFamily: "Nunito",
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(color: Colors.grey[200], height: 1),
+          Expanded(
+            child: _buildDashboardsList(),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 300.ms, delay: 200.ms);
+  }
+
+  Widget _buildDashboardsList() {
+    if (isDashboardLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: ColorApp.lapisLazuli),
+            const SizedBox(height: 16),
+            Text(
+              'Loading dashboards...',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontFamily: "Nunito",
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (dashboardList.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: SvgPicture.asset(
+                '../assets/svg/notfound.svg',
+                height: 80,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'No Dashboards Created',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+                fontFamily: "Nunito",
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Create your first dashboard to get started',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontFamily: "Nunito",
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: dashboardList.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        var db = dashboardList[index];
+        return _buildDashboardItem(db);
+      },
+    );
+  }
+
+  Widget _buildDashboardItem(Map<String, dynamic> db) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            Icons.analytics_outlined,
+            color: ColorApp.lapisLazuli,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          db['dashboard_name'],
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: "Nunito",
+          ),
+        ),
+        trailing: PopupMenuButton<String>(
+          icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          onSelected: (value) {
+            if (value == 'delete') {
+              _showDeleteDashboardDialog(db);
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem<String>(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(Icons.delete_outline, color: Colors.red[600], size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Delete',
+                    style: TextStyle(
+                      color: Colors.red[600],
+                      fontFamily: "Nunito",
+                    ),
+                  ),
                 ],
               ),
             ),
+          ],
+        ),
+        onTap: () {
+          // Navigate to dashboard
+        },
+      ),
     );
   }
 }

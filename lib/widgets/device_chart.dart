@@ -107,7 +107,7 @@ class _DeviceChartsState extends State<DeviceCharts> {
     //   createChartLoading = true;
     // });
 
-    String id = Uuid().v4();
+    String id = const Uuid().v4();
 
     try {
       await DevicesService().createNewChart("Live Chart", widget.deviceId, id);
@@ -157,32 +157,23 @@ class _DeviceChartsState extends State<DeviceCharts> {
           if (snapshot.hasData) {
             // var data = snapshot.data.snapshot.value;
 
-            data = snapshot.data.snapshot.value;
-
-            if (data == null) {
-              return const SizedBox(
-                // height: Get.height,
-                // width: Get.width,
-                child: Center(
-                  child: Text('No Data Found'),
-                ),
-              );
-            }
+            data =
+                Map<String, dynamic>.from(snapshot.data.snapshot.value as Map);
 
             if (!data.containsKey('charts')) {
               // If there are no charts, create a new chart
               createNewChart();
-              return Center(
+              return const Center(
                 child:
                     CircularProgressIndicator(), // Show a loading indicator while creating the chart
               );
             }
 
-            if (data == null || !data.containsKey('charts')) {
+            if (!data.containsKey('charts')) {
               // setState(() {
               //   isChartAvailable = true;
               // });
-              return SizedBox();
+              return const SizedBox();
               // return Center(
               //   child: Column(
               //     mainAxisAlignment: MainAxisAlignment.center,

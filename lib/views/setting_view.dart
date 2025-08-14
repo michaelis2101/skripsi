@@ -2,10 +2,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:image_network/image_network.dart';
 import 'package:ta_web/classes/colors_cl.dart';
-import 'package:ta_web/classes/input_cl.dart';
 import 'package:ta_web/services/auth_service.dart';
 import 'package:ta_web/services/user_service.dart';
 
@@ -22,7 +22,7 @@ class _SettingViewState extends State<SettingView> {
   Map<String, dynamic> userInfo = {};
   Map<String, dynamic> userSettings = {};
   bool isLoading = false;
-  List<PlatformFile> _files = [];
+  final List<PlatformFile> _files = [];
 
   final newNameCont = TextEditingController();
 
@@ -80,371 +80,746 @@ class _SettingViewState extends State<SettingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: ColorApp.lapisLazuli,
+      backgroundColor: Colors.grey[50],
       body: isLoading
           ? Center(
-              child: CircularProgressIndicator(
-              color: ColorApp.lapisLazuli,
-            ))
-          : Padding(
-              padding: const EdgeInsets.all(8),
-              child: Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(color: ColorApp.lapisLazuli),
-                      // color: ColorApp.duronQuartzWhite,
-                      borderRadius: BorderRadius.circular(10)),
-                  height: Get.height,
-                  width: Get.width / 1.8,
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+              child: Container(
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      color: ColorApp.lapisLazuli,
+                      strokeWidth: 3,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Loading your settings...',
+                      style: TextStyle(
+                        color: ColorApp.lapisLazuli,
+                        fontSize: 16,
+                        fontFamily: "Nunito",
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  _buildHeader(),
+                  const SizedBox(height: 32),
+
+                  // Main Content
+                  Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 800),
                       child: Column(
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                                // boxShadow: [
-                                //   BoxShadow(
-                                //       color: ColorApp.lapisLazuli,
-                                //       spreadRadius: 2,
-                                //       blurRadius: 4,
-                                //       blurStyle: BlurStyle.inner,
-                                //       offset: const Offset(0, 1))
-                                // ],
-                                color: Colors.white,
-                                border: Border.all(
-                                    width: 1, color: ColorApp.lapisLazuli),
-                                borderRadius: BorderRadius.circular(10)),
-                            width: double.infinity,
-                            height: 200,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(100),
-                                        border: Border.all(
-                                          width: 3,
-                                          color: ColorApp.lapisLazuli,
-                                        )),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(5.0),
-                                      child: Container(
-                                        height: 120,
-                                        width: 120,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(100)),
-                                        child: userSettings['profile_pic'] !=
-                                                null
-                                            ? ImageNetwork(
-                                                image:
-                                                    userSettings['profile_pic'],
-                                                height: 120,
-                                                width: 120,
-                                                borderRadius:
-                                                    BorderRadius.circular(100),
-                                              )
-                                            : ImageNetwork(
-                                                borderRadius:
-                                                    BorderRadius.circular(100),
-                                                image:
-                                                    'https://firebasestorage.googleapis.com/v0/b/project-st-iot.appspot.com/o/default_asset%2Fdefaultpfp.png?alt=media&token=882c5086-0c64-4285-b452-ca0b021707b6',
-                                                height: 120,
-                                                width: 120),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                    'Welcome Back, ${userInfo['username']}!',
-                                    style: TextStyle(
-                                        color: ColorApp.lapisLazuli,
-                                        fontSize: 35,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
+                          // Profile Card
+                          _buildProfileCard(),
+                          const SizedBox(height: 24),
+
+                          // Settings Options
+                          _buildSettingsOptions(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                ColorApp.lapisLazuli,
+                ColorApp.lapisLazuli.withValues(alpha: 0.8),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: ColorApp.lapisLazuli.withValues(alpha: 0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.settings_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Text(
+          'Settings',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w800,
+            color: ColorApp.lapisLazuli,
+            fontFamily: "Nunito",
+          ),
+        ),
+      ],
+    ).animate().fadeIn(duration: 300.ms);
+  }
+
+  Widget _buildProfileCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            ColorApp.lapisLazuli,
+            ColorApp.lapisLazuli.withValues(alpha: 0.8),
+            ColorApp.lapisLazuli.withValues(alpha: 0.9),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: ColorApp.lapisLazuli.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _buildProfileImage(),
+          const SizedBox(width: 32),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Profile Settings',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontFamily: "Nunito",
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  userInfo['username'] ?? 'User',
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    fontFamily: "Nunito",
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontFamily: "Nunito",
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+  }
+
+  Widget _buildProfileImage() {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3), width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(17),
+            child: SizedBox(
+              height: 120,
+              width: 120,
+              child: userSettings['profile_pic'] != null
+                  ? ImageNetwork(
+                      image: userSettings['profile_pic'],
+                      height: 120,
+                      width: 120,
+                      borderRadius: BorderRadius.circular(17),
+                    )
+                  : ImageNetwork(
+                      borderRadius: BorderRadius.circular(17),
+                      image:
+                          'https://firebasestorage.googleapis.com/v0/b/project-st-iot.appspot.com/o/default_asset%2Fdefaultpfp.png?alt=media&token=882c5086-0c64-4285-b452-ca0b021707b6',
+                      height: 120,
+                      width: 120,
+                    ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: GestureDetector(
+            onTap: _handleImageUpload,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.camera_alt_rounded,
+                color: ColorApp.lapisLazuli,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingsOptions() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.tune_rounded,
+                    color: ColorApp.lapisLazuli,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Account Settings',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: ColorApp.lapisLazuli,
+                    fontFamily: "Nunito",
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(color: Colors.grey[200], height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildSettingItem(
+                  icon: Icons.person_outline_rounded,
+                  title: 'Change Profile Picture',
+                  subtitle: 'Update your profile photo',
+                  onTap: _handleImageUpload,
+                ),
+                const SizedBox(height: 12),
+                _buildSettingItem(
+                  icon: Icons.edit_outlined,
+                  title: 'Change Username',
+                  subtitle: 'Update your display name',
+                  onTap: _showUsernameDialog,
+                ),
+                const SizedBox(height: 12),
+                Divider(color: Colors.grey[200]),
+                const SizedBox(height: 12),
+                _buildSettingItem(
+                  icon: Icons.logout_outlined,
+                  title: 'Sign Out',
+                  subtitle: 'Logout from your account',
+                  onTap: _showLogoutDialog,
+                  isDestructive: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 300.ms, delay: 200.ms);
+  }
+
+  Widget _buildSettingItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDestructive
+                ? Colors.red[50]
+                : ColorApp.lapisLazuli.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color: isDestructive ? Colors.red[600] : ColorApp.lapisLazuli,
+            size: 24,
+          ),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: "Nunito",
+            fontSize: 16,
+            color: isDestructive ? Colors.red[600] : Colors.grey[800],
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+            fontFamily: "Nunito",
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          color: Colors.grey[400],
+          size: 16,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  void _handleImageUpload() async {
+    await _selectFiles();
+    if (_files.isNotEmpty) {
+      try {
+        await UserService()
+            .changePfp(email, _files[0], userSettings['profile_pic']);
+        Get.snackbar(
+          'Success',
+          'Profile picture updated successfully',
+          backgroundColor: Colors.green[50],
+          colorText: Colors.green[700],
+          icon: Icon(Icons.check_circle_outline, color: Colors.green[700]),
+          snackPosition: SnackPosition.TOP,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+          duration: const Duration(seconds: 3),
+        );
+      } catch (e) {
+        print(e);
+        Get.snackbar(
+          'Error',
+          'Failed to update profile picture',
+          backgroundColor: Colors.red[50],
+          colorText: Colors.red[700],
+          icon: Icon(Icons.error_outline, color: Colors.red[700]),
+          snackPosition: SnackPosition.TOP,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+          duration: const Duration(seconds: 3),
+        );
+      } finally {
+        getUserInfo();
+        setState(() {
+          _files.clear();
+        });
+      }
+    }
+  }
+
+  void _showUsernameDialog() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 400,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Icon(
+                  Icons.edit_outlined,
+                  color: ColorApp.lapisLazuli,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Change Username',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: ColorApp.lapisLazuli,
+                  fontFamily: "Nunito",
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: newNameCont,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: "Nunito",
+                  ),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    hintText: 'Enter new username',
+                    prefixIcon:
+                        Icon(Icons.person_outline, color: ColorApp.lapisLazuli),
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontFamily: "Nunito",
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[200]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[200]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: ColorApp.lapisLazuli, width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            newNameCont.clear();
+                            Get.back();
+                          },
+                          child: const Center(
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontFamily: "Nunito",
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          ListTile(
-                            leading: Icon(
-                              Icons.person,
-                              color: ColorApp.lapisLazuli,
-                            ),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(
-                                    width: 1,
-                                    color: ColorApp.lightLapisLazuli)),
-                            title: const Text('Change Profile Picture'),
-                            tileColor: Colors.white,
-                            onTap: () async {
-                              await _selectFiles();
-                              if (_files.isNotEmpty) {
-                                try {
-                                  await UserService().changePfp(email,
-                                      _files[0], userSettings['profile_pic']);
-                                } catch (e) {
-                                  print(e);
-                                } finally {
-                                  getUserInfo();
-                                }
-                              } else {
-                                setState(() {
-                                  _files.clear();
-                                });
-                                Get.back();
-                              }
-                            },
-                            // hoverColor: Colors.red,
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          ListTile(
-                            leading: Icon(
-                              Icons.edit,
-                              color: ColorApp.lapisLazuli,
-                            ),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(
-                                    width: 1,
-                                    color: ColorApp.lightLapisLazuli)),
-                            title: const Text('Change Username'),
-                            tileColor: Colors.white,
-                            onTap: () async {
-                              Get.defaultDialog(
-                                  title: 'Change Username',
-                                  content: Container(
-                                    width: Get.width * 0.2,
-                                    child: Column(
-                                      children: [
-                                        TextField(
-                                          controller: newNameCont,
-                                          decoration: InputStyle().fieldStyle,
-                                        ),
-                                        const SizedBox(
-                                          height: 8,
-                                        ),
-                                        SizedBox(
-                                          height: 50,
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      ColorApp.lapisLazuli,
-                                                  shape: RoundedRectangleBorder(
-                                                      side: BorderSide(
-                                                          width: 1,
-                                                          color: ColorApp
-                                                              .lapisLazuli),
-                                                      borderRadius:
-                                                          const BorderRadius
-                                                              .all(
-                                                              Radius.circular(
-                                                                  10)))),
-                                              onPressed: () async {
-                                                if (newNameCont.text.isEmpty) {
-                                                  Get.defaultDialog(
-                                                      title: 'Warning',
-                                                      middleText:
-                                                          'Name cannot be empty',
-                                                      confirm: SizedBox(
-                                                        width: 200,
-                                                        height: 50,
-                                                        child: ElevatedButton(
-                                                            style: ElevatedButton.styleFrom(
-                                                                backgroundColor:
-                                                                    ColorApp
-                                                                        .lapisLazuli,
-                                                                shape: RoundedRectangleBorder(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            10))),
-                                                            onPressed: () {
-                                                              Get.back();
-                                                            },
-                                                            child: const Text(
-                                                              'Ok',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .white),
-                                                            )),
-                                                      ));
-                                                } else {
-                                                  try {
-                                                    await UserService()
-                                                        .changeUsername(
-                                                            user!.uid,
-                                                            newNameCont.text);
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            ColorApp.lapisLazuli,
+                            ColorApp.lapisLazuli.withValues(alpha: 0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () async {
+                            if (newNameCont.text.isEmpty) {
+                              Get.snackbar(
+                                'Warning',
+                                'Name cannot be empty',
+                                backgroundColor: Colors.orange[50],
+                                colorText: Colors.orange[700],
+                                icon: Icon(Icons.warning_outlined,
+                                    color: Colors.orange[700]),
+                                snackPosition: SnackPosition.TOP,
+                                margin: const EdgeInsets.all(16),
+                                borderRadius: 12,
+                              );
+                              return;
+                            }
 
-                                                    getUserInfo();
-                                                  } catch (e) {
-                                                    print(e);
-                                                  } finally {
-                                                    newNameCont.clear();
-                                                    Get.back();
-                                                  }
-                                                }
-                                                // try {
-                                                //   Auth().signOut();
-                                                // } catch (e) {
-                                                //   print(e);
-                                                // } finally {
-                                                //   Get.back();
-                                                // }
-                                              },
-                                              child: const Text(
-                                                'Yes',
-                                                style: TextStyle(
-                                                    color: Colors.white),
-                                              )),
-                                        ),
-                                        const SizedBox(
-                                          height: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 50,
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                  backgroundColor: Colors.white,
-                                                  shape: RoundedRectangleBorder(
-                                                      side: BorderSide(
-                                                          width: 1,
-                                                          color: ColorApp
-                                                              .lapisLazuli),
-                                                      borderRadius:
-                                                          const BorderRadius
-                                                              .all(
-                                                              Radius.circular(
-                                                                  10)))),
-                                              onPressed: () {
-                                                Get.back();
-                                              },
-                                              child: Text(
-                                                'Back',
-                                                style: TextStyle(
-                                                    color:
-                                                        ColorApp.lapisLazuli),
-                                              )),
-                                        )
-                                      ],
-                                    ),
-                                  ));
-                            },
-                            // hoverColor: Colors.red,
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          ListTile(
-                            leading: Icon(
-                              Icons.logout_outlined,
-                              color: ColorApp.lapisLazuli,
+                            try {
+                              await UserService()
+                                  .changeUsername(user!.uid, newNameCont.text);
+                              getUserInfo();
+                              Get.back();
+                              Get.snackbar(
+                                'Success',
+                                'Username updated successfully',
+                                backgroundColor: Colors.green[50],
+                                colorText: Colors.green[700],
+                                icon: Icon(Icons.check_circle_outline,
+                                    color: Colors.green[700]),
+                                snackPosition: SnackPosition.TOP,
+                                margin: const EdgeInsets.all(16),
+                                borderRadius: 12,
+                              );
+                            } catch (e) {
+                              print(e);
+                              Get.snackbar(
+                                'Error',
+                                'Failed to update username',
+                                backgroundColor: Colors.red[50],
+                                colorText: Colors.red[700],
+                                icon: Icon(Icons.error_outline,
+                                    color: Colors.red[700]),
+                                snackPosition: SnackPosition.TOP,
+                                margin: const EdgeInsets.all(16),
+                                borderRadius: 12,
+                              );
+                            } finally {
+                              newNameCont.clear();
+                            }
+                          },
+                          child: const Center(
+                            child: Text(
+                              'Update',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: "Nunito",
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(
-                                    width: 1,
-                                    color: ColorApp.lightLapisLazuli)),
-                            title: const Text('Logout'),
-                            tileColor: Colors.white,
-                            onTap: () {
-                              Get.defaultDialog(
-                                  // middleTextStyle: const TextStyle(fontSize: 120),
-                                  title: 'Log Out?',
-                                  // middleText: 'Are you sure want to delete $widgetName?',
-                                  content: Column(
-                                    children: [
-                                      const Text(
-                                        'Are you sure want to sign out?',
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
-                                      SizedBox(
-                                        height: 50,
-                                        width: double.infinity,
-                                        child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.white,
-                                                shape: RoundedRectangleBorder(
-                                                    side: BorderSide(
-                                                        width: 1,
-                                                        color: ColorApp
-                                                            .lapisLazuli),
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(
-                                                                10)))),
-                                            onPressed: () {
-                                              try {
-                                                Auth().signOut();
-                                              } catch (e) {
-                                                print(e);
-                                              } finally {
-                                                Get.back();
-                                              }
-                                            },
-                                            child: Text(
-                                              'Yes',
-                                              style: TextStyle(
-                                                  color: ColorApp.lapisLazuli),
-                                            )),
-                                      ),
-                                      const SizedBox(
-                                        height: 5,
-                                      ),
-                                      SizedBox(
-                                        height: 50,
-                                        width: double.infinity,
-                                        child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.red,
-                                                shape:
-                                                    const RoundedRectangleBorder(
-                                                        side: BorderSide(
-                                                            width: 1,
-                                                            color: Colors.red),
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                                Radius.circular(
-                                                                    10)))),
-                                            onPressed: () {
-                                              Get.back();
-                                            },
-                                            child: const Text(
-                                              'No',
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            )),
-                                      )
-                                    ],
-                                  ));
-                            },
-                            // hoverColor: Colors.red,
-                          )
-                        ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 300,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: ColorApp.lapisLazuli.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Icon(
+                  Icons.logout_outlined,
+                  color: ColorApp.lapisLazuli,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Sign Out',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: ColorApp.lapisLazuli,
+                  fontFamily: "Nunito",
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Are you sure you want to sign out of your account?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontFamily: "Nunito",
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                height: 45,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => Get.back(),
+                    child: const Center(
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontFamily: "Nunito",
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+              const SizedBox(height: 10),
+              Container(
+                height: 45,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      ColorApp.lapisLazuli,
+                      ColorApp.lapisLazuli.withValues(alpha: 0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      try {
+                        Auth().signOut();
+                        Get.back();
+                      } catch (e) {
+                        print(e);
+                        Get.back();
+                      }
+                    },
+                    child: const Center(
+                      child: Text(
+                        'Sign Out',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Nunito",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

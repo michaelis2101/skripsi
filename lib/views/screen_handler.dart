@@ -29,7 +29,7 @@ class _ScreenHandlerState extends State<ScreenHandler> {
           key: _key,
           appBar: isSmallScreen
               ? AppBar(
-                  title: const Text('ta_web'),
+                  title: const Text('FDSM'),
                   leading: IconButton(
                     onPressed: () {
                       _key.currentState?.openDrawer();

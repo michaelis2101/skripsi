@@ -70,11 +70,18 @@ class _MainDashboardState extends State<MainDashboard> {
                         width: 200,
                         child: ElevatedButton(
                             onPressed: () {
-                              Get.defaultDialog(
-                                title: 'Create New Widget',
-                                content: NewWidgetDialogDB(
-                                    userEmail: user!.email!,
-                                    dsahboardId: idDashboard),
+                              // Get.defaultDialog(
+                              //   title: 'Create New Widget',
+                              //   content: NewWidgetDialogDB(
+                              //       userEmail: user!.email!,
+                              //       dsahboardId: idDashboard),
+                              // );
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) => NewWidgetDialog(
+                                  dashboardId: idDashboard,
+                                ),
                               );
                             },
                             style: ElevatedButton.styleFrom(
