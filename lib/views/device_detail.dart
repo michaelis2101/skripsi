@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ta_web/classes/colors_cl.dart';
-import 'package:ta_web/models/log_model.dart';
 import 'package:ta_web/services/devices_service.dart';
 import 'package:ta_web/services/note_service.dart';
 import 'package:ta_web/views/device_tutor.dart';
@@ -17,12 +16,12 @@ import 'package:ta_web/widgets/device_chart.dart';
 import 'package:ta_web/widgets/device_dashboard.dart';
 import 'package:ta_web/widgets/device_log.dart';
 import 'package:ta_web/widgets/note_view.dart';
-import 'package:ta_web/widgets/widget_card.dart';
 
 class DeviceDetail extends StatefulWidget {
-  String deviceName, deviceID;
+  final String deviceName, deviceID;
 
-  DeviceDetail({super.key, required this.deviceName, required this.deviceID});
+  const DeviceDetail(
+      {super.key, required this.deviceName, required this.deviceID});
 
   @override
   State<DeviceDetail> createState() => _DeviceDetailState();
@@ -119,6 +118,512 @@ class _DeviceDetailState extends State<DeviceDetail> {
     return id;
   }
 
+  Widget _buildDeviceInfoCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header - more compact
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  ColorApp.lapisLazuli,
+                  ColorApp.lapisLazuli.withOpacity(0.8)
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.info_rounded,
+                    color: Colors.white,
+                    size: 14,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Expanded(
+                  child: Text(
+                    'Device Information',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Nunito',
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                StreamBuilder(
+                  stream: FirebaseDatabase.instance
+                      .ref()
+                      .child('devices/$deviceId/status/status')
+                      .onValue,
+                  builder: (context, AsyncSnapshot snapshot) {
+                    if (snapshot.hasData) {
+                      var status = snapshot.data.snapshot.value;
+                      bool isOnline = status != null && status != 'offline';
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isOnline
+                              ? Colors.green.withOpacity(0.2)
+                              : Colors.red.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.circle,
+                              color: isOnline ? Colors.green : Colors.red,
+                              size: 8,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              isOnline ? 'Online' : 'Offline',
+                              style: TextStyle(
+                                color: isOnline ? Colors.green : Colors.red,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        child: const Text(
+                          'Loading...',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontFamily: 'Nunito',
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          // Content - more compact layout with fixed height to match notes section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: SizedBox(
+              height: 120, // Fixed height to match notes section
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactInfoRow(
+                            Icons.fingerprint_rounded, 'ID', deviceId,
+                            copyable: true),
+                      ),
+                      Expanded(
+                        child: _buildCompactInfoRow(
+                            Icons.person_rounded, 'Owner', owner),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactInfoRow(
+                            Icons.account_circle_rounded, 'User', user),
+                      ),
+                      Expanded(
+                        child: _buildCompactInfoRow(
+                            Icons.settings_rounded, 'Status', status),
+                      ),
+                    ],
+                  ),
+                  _buildCompactInfoRow(Icons.calendar_today_rounded, 'Created',
+                      formatDateTime(createdAt)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactInfoRow(IconData icon, String label, String value,
+      {bool copyable = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: ColorApp.lapisLazuli.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Icon(
+            icon,
+            color: ColorApp.lapisLazuli,
+            size: 12,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[600],
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.black87,
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        if (copyable)
+          InkWell(
+            borderRadius: BorderRadius.circular(4),
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: value));
+              Get.snackbar(
+                'Copied!',
+                'Device ID copied to clipboard',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: ColorApp.lapisLazuli,
+                colorText: Colors.white,
+                duration: const Duration(seconds: 2),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Icon(
+                Icons.copy_rounded,
+                size: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildNotesSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header - more compact to match device info card
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  ColorApp.lapisLazuli,
+                  ColorApp.lapisLazuli.withOpacity(0.8)
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.sticky_note_2_rounded,
+                    color: Colors.white,
+                    size: 14,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Expanded(
+                  child: Text(
+                    'Device Notes',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Nunito',
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${noteList.length} notes',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Content - more compact layout to match device info card height
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: SizedBox(
+              height:
+                  120, // Fixed height to match the compact device info content
+              child: Row(
+                children: [
+                  // Notes List
+                  Expanded(
+                    child: noteList.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.note_add_rounded,
+                                  size: 32,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'No notes yet',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontFamily: 'Nunito',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  'Add your first note',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[500],
+                                    fontFamily: 'Nunito',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: noteList.length,
+                            itemBuilder: (context, index) {
+                              var note = noteList[index];
+                              return Container(
+                                width: 120,
+                                margin: const EdgeInsets.only(right: 8),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(8),
+                                    onTap: () {
+                                      Get.defaultDialog(
+                                        title: '',
+                                        titleStyle: const TextStyle(height: 0),
+                                        content: NoteView(
+                                          noteID: note['id'],
+                                          refreshNoteList: () => getNoteList(),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[50],
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                            color: Colors.grey[200]!),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 4, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: ColorApp.lapisLazuli
+                                                  .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              formatDateTime(note['created_at']
+                                                  .toString()),
+                                              style: TextStyle(
+                                                fontSize: 8,
+                                                color: ColorApp.lapisLazuli,
+                                                fontFamily: 'Nunito',
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            note['title'],
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Nunito',
+                                              color: Colors.black87,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Expanded(
+                                            child: Text(
+                                              note['content'],
+                                              style: TextStyle(
+                                                fontSize: 9,
+                                                color: Colors.grey[700],
+                                                fontFamily: 'Nunito',
+                                              ),
+                                              maxLines: 4,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Add Note Button - more compact
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        Get.defaultDialog(
+                          title: 'Add New Note',
+                          content: AddDeviceNote(
+                            deviceID: widget.deviceID,
+                            refreshNoteList: () => getNoteList(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 60,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: ColorApp.lapisLazuli.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: ColorApp.lapisLazuli.withOpacity(0.3)),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: ColorApp.lapisLazuli,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.add_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Add Note',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w600,
+                                color: ColorApp.lapisLazuli,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -131,413 +636,133 @@ class _DeviceDetailState extends State<DeviceDetail> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
         backgroundColor: ColorApp.lapisLazuli,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
           ),
-          onPressed: () => Get.back(),
+          child: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            onPressed: () => Get.back(),
+          ),
         ),
         automaticallyImplyLeading: false,
-        title: Text(
-          widget.deviceName,
-          style: const TextStyle(
-              fontFamily: "Nunito", fontSize: 30, color: Colors.white),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: SizedBox(
-          // color: Colors.amber,
-          // height: Get.height,
-          width: Get.width,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              if (isLoading)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    height: 150,
-                    width: Get.width,
-                    child: const Center(
-                      child: CircularProgressIndicator(),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.devices_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.deviceName,
+                    style: const TextStyle(
+                      fontFamily: "Nunito",
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    'Device Details',
+                    style: TextStyle(
+                      fontFamily: "Nunito",
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
                     ),
                   ),
-                ),
-              if (!isLoading)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  // padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          height: 150,
-                          width: Get.width / 3,
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  width: 1, color: ColorApp.lapisLazuli),
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(10))),
-                          child: Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                      'Device Info',
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    StreamBuilder(
-                                      stream: FirebaseDatabase.instance
-                                          .ref()
-                                          .child(
-                                              'devices/$deviceId/status/status')
-                                          .onValue,
-                                      builder:
-                                          (context, AsyncSnapshot snapshot) {
-                                        if (snapshot.hasData) {
-                                          var status =
-                                              snapshot.data.snapshot.value;
-
-                                          if (status == null ||
-                                              status == 'offline') {
-                                            return const Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.circle_sharp,
-                                                  color: Colors.red,
-                                                  size: 18,
-                                                ),
-                                                Text('Offline')
-                                              ],
-                                            );
-                                          } else {
-                                            return const Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.circle_sharp,
-                                                  color: Colors.green,
-                                                  size: 18,
-                                                ),
-                                                Text('Online')
-                                              ],
-                                            );
-                                          }
-                                        } else if (snapshot.hasError) {
-                                          return const Row(
-                                            children: [
-                                              Icon(
-                                                Icons.circle_sharp,
-                                                color: Colors.grey,
-                                                size: 18,
-                                              ),
-                                              Text('N/A')
-                                            ],
-                                          );
-                                        } else {
-                                          return Row(
-                                            children: [
-                                              SizedBox(
-                                                  height: 18,
-                                                  width: 18,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    color: ColorApp.lapisLazuli,
-                                                  )),
-                                              const Text('Loading...')
-                                            ],
-                                          );
-                                        }
-                                      },
-                                    )
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Text('Device Id : $deviceId'),
-                                    const SizedBox(
-                                      width: 5,
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        Clipboard.setData(
-                                            ClipboardData(text: deviceId));
-                                      },
-                                      child: const Tooltip(
-                                        message: 'Copy Device Id',
-                                        child: Icon(
-                                          Icons.copy,
-                                          size: 15,
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                                Text('Owner : $owner'),
-                                Text('User : $user'),
-                                Text('Status : $status'),
-                                Text('Created At : $createdAt')
-                              ],
-                            ),
-                          ),
-                        ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                ColorApp.lapisLazuli,
+                ColorApp.lapisLazuli.withOpacity(0.8)
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.grey[50]!, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Loading State
+              if (isLoading)
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Container(
-                          width: Get.width * 0.64,
-                          height: 150,
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  width: 1, color: ColorApp.lapisLazuli),
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(10))),
-                          child: Column(
-                            children: [
-                              Container(
-                                height: 30,
-                                decoration: BoxDecoration(
-                                    color: ColorApp.lapisLazuli,
-                                    borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(10))),
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 8),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding:
-                                            EdgeInsets.symmetric(horizontal: 8),
-                                        child: Text(
-                                          'Notes',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    // color: Colors.pink,
-                                    width: (Get.width * 0.64) * 0.9,
-                                    height: 118,
-                                    decoration: const BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                            bottomLeft: Radius.circular(10))),
-                                    //notes card
-
-                                    child: GridView.builder(
-                                      itemCount: noteList.length,
-                                      scrollDirection: Axis.horizontal,
-                                      gridDelegate:
-                                          const SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: 1,
-                                              childAspectRatio: 5 / 8,
-                                              crossAxisSpacing: 0,
-                                              mainAxisSpacing: 0),
-                                      itemBuilder: (context, index) {
-                                        var note = noteList[index];
-
-                                        return Padding(
-                                          padding: const EdgeInsets.all(5.0),
-                                          child: InkWell(
-                                            onTap: () {
-                                              Get.defaultDialog(
-                                                  title: '',
-                                                  titleStyle: const TextStyle(
-                                                      height: 0),
-                                                  // title: null,
-
-                                                  content: NoteView(
-                                                    noteID: note['id'],
-                                                    // refreshNoteList: getNoteList(),
-                                                    refreshNoteList: () =>
-                                                        getNoteList(),
-                                                  ));
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  color: Colors.white54,
-                                                  border: Border.all(
-                                                      width: 1,
-                                                      color: ColorApp
-                                                          .lapisLazuli)),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: [
-                                                  Container(
-                                                    // width: double.infinity,
-                                                    decoration: BoxDecoration(
-                                                        color: ColorApp
-                                                            .lapisLazuli,
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                                topLeft: Radius
-                                                                    .circular(
-                                                                        10),
-                                                                bottomRight: Radius
-                                                                    .circular(
-                                                                        10)),
-                                                        border: Border.all(
-                                                            width: 1,
-                                                            color: ColorApp
-                                                                .lightLapisLazuli)),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 5),
-                                                      child: Text(
-                                                        formatDateTime(
-                                                            note['created_at']
-                                                                .toString()),
-                                                        style: const TextStyle(
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            fontSize: 14,
-                                                            color:
-                                                                Colors.white),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(5),
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          note['title'],
-                                                          // maxLines: ,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style: const TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                        ),
-                                                        Text(
-                                                          note['content'],
-                                                          maxLines: 2,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Get.defaultDialog(
-                                          title: 'Add New Note',
-                                          content: AddDeviceNote(
-                                            deviceID: widget.deviceID,
-                                            refreshNoteList: () {
-                                              getNoteList();
-                                            },
-                                          ));
-                                    },
-                                    child: Container(
-                                      width: (Get.width * 0.64) * 0.097,
-                                      height: 118,
-                                      decoration: BoxDecoration(
-                                        borderRadius: const BorderRadius.only(
-                                            bottomRight: Radius.circular(10)),
-                                        border: Border(
-                                            left: BorderSide(
-                                                width: 1,
-                                                color: ColorApp.lapisLazuli)),
-                                        // color: Colors.pinkAccent
-                                      ),
-                                      child: Center(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Container(
-                                              height: 80,
-                                              width: 70,
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  color: ColorApp.lapisLazuli),
-                                              child: const Center(
-                                                child: Icon(
-                                                  Icons.note_add_rounded,
-                                                  size: 40,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: 5,
-                                            ),
-                                            const Text(
-                                              'New Note',
-                                              style: TextStyle(fontSize: 18),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      )
+                    ],
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              // Device Info Section
+              if (!isLoading)
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Device Info Card
+                      Expanded(
+                        flex: 1,
+                        child: _buildDeviceInfoCard(),
+                      ),
+                      const SizedBox(width: 16),
+                      // Notes Section
+                      Expanded(
+                        flex: 2,
+                        child: _buildNotesSection(),
+                      ),
                     ],
                   ),
                 ),
+              // Data Visualization Tabs
               StreamBuilder(
                 stream: FirebaseDatabase.instance
                     .ref()
@@ -549,20 +774,58 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
                     List<String> valueKeys = [];
                     List<String> stringValueKeys = [];
+
                     if (data == null) {
-                      return const SizedBox(
-                        // height: Get.height,
-                        // width: Get.width,
+                      return Container(
+                        margin: const EdgeInsets.all(16),
+                        height: 300,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
                         child: Center(
-                          child: Text('No Data Found'),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.data_usage_rounded,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No Data Found',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[600],
+                                  fontFamily: 'Nunito',
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'This device hasn\'t sent any data yet',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                  fontFamily: 'Nunito',
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     }
 
                     if (data == null || !data.containsKey('value')) {
-                      return SendValueTutorial(
-                        deviceId: deviceId,
-                      );
+                      return SendValueTutorial(deviceId: deviceId);
                     } else {
                       if (data.containsKey('value') && status != 'Connected') {
                         DevicesService().updateDeviceStatus(widget.deviceID);
@@ -570,99 +833,115 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
                       Map<String, dynamic> deviceValue =
                           Map<String, dynamic>.from(data['value'] as Map);
-                      // Map<String, dynamic> deviceValue = data['value'];
-
-                      //check the data type first, if the data string then do not add to the 'valueKeys' List, create a new list to save the key with string data type
-                      // deviceValue.forEach((key, value) {
-                      //   valueKeys.add(key);
-                      // });
 
                       deviceValue.forEach((key, value) {
                         if (value is String) {
-                          // If the value is a string, add the key to the stringValueKeys list
                           stringValueKeys.add(key);
                         } else {
-                          // If the value is not a string, add the key to the valueKeys list
                           valueKeys.add(key);
                         }
                       });
-
-                      // print(stringValueKeys);
 
                       List<String> allKeys = [];
                       allKeys.addAll(valueKeys);
                       allKeys.addAll(stringValueKeys);
 
-                      LogModel newVal = LogModel(
-                          deviceId: deviceId,
-                          value: deviceValue.toString(),
-                          deviceName: widget.deviceName);
+                      // Remove unused variable
+                      // LogModel newVal = LogModel(
+                      //     deviceId: deviceId,
+                      //     value: deviceValue.toString(),
+                      //     deviceName: widget.deviceName);
 
-                      try {
-                        // insertDataToLog(newVal, data);
-                      } catch (e) {
-                        print(e);
-                      }
-
-                      return SizedBox(
-                        height: Get.height - 150 - 72,
-                        width: Get.width,
-                        child: ContainedTabBarView(
+                      return Container(
+                        margin: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: SizedBox(
+                          height: Get.height - 350,
+                          child: ContainedTabBarView(
                             tabBarProperties: TabBarProperties(
-                                labelStyle: const TextStyle(
-                                    fontSize: 18, color: Colors.white),
-                                unselectedLabelStyle: TextStyle(
-                                    fontSize: 18, color: ColorApp.lapisLazuli),
-                                indicatorSize: TabBarIndicatorSize.tab,
-                                indicatorColor: ColorApp.lapisLazuli,
-                                indicator: BoxDecoration(
-                                    color: ColorApp.lapisLazuli,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                        width: 1, color: ColorApp.lapisLazuli)),
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 8)),
-                            // tabBarViewProperties: TabBarViewProperties(),
-                            onChange: (p0) {
-                              // print(p0);
-                              // setState(() {
-                              //   selectedIndex = p0;
-                              // });
-                            },
-                            tabs: const [
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Device Dashboard',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    // color: selectedIndex == 0
-                                    //     ? Colors.white
-                                    //     : ColorApp.lapisLazuli
+                              height: 50,
+                              labelStyle: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w600,
+                              ),
+                              unselectedLabelStyle: TextStyle(
+                                fontSize: 16,
+                                color: ColorApp.lapisLazuli,
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w500,
+                              ),
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              indicatorColor: ColorApp.lapisLazuli,
+                              indicator: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    ColorApp.lapisLazuli,
+                                    ColorApp.lapisLazuli.withOpacity(0.8)
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        ColorApp.lapisLazuli.withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
+                                ],
+                              ),
+                              margin: const EdgeInsets.all(8),
+                            ),
+                            tabs: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.dashboard_rounded, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Dashboard'),
+                                  ],
                                 ),
                               ),
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Data Charts',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    // color: selectedIndex == 0
-                                    //     ? Colors.white
-                                    //     : ColorApp.lapisLazuli
-                                  ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.analytics_rounded, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Charts'),
+                                  ],
                                 ),
                               ),
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Device Log',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                  ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.list_alt_rounded, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Logs'),
+                                  ],
                                 ),
-                              )
+                              ),
                             ],
                             views: [
                               DeviceDashboard(
@@ -677,18 +956,95 @@ class _DeviceDetailState extends State<DeviceDetail> {
                               DeviceLog(
                                 deviceId: widget.deviceID,
                                 keys: valueKeys,
-                              )
-                            ]),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     }
                   } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Error: ${snapshot.error}'),
+                    return Container(
+                      margin: const EdgeInsets.all(16),
+                      height: 300,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline_rounded,
+                              size: 64,
+                              color: Colors.red[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Error Loading Data',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red[600],
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              snapshot.error.toString(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.red[500],
+                                fontFamily: 'Nunito',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   } else {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: ColorApp.lapisLazuli,
+                    return Container(
+                      margin: const EdgeInsets.all(16),
+                      height: 300,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              color: ColorApp.lapisLazuli,
+                              strokeWidth: 3,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Loading Device Data...',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }
