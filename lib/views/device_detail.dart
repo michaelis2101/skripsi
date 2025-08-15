@@ -717,341 +717,344 @@ class _DeviceDetailState extends State<DeviceDetail> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Loading State
-              if (isLoading)
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-              // Device Info Section
-              if (!isLoading)
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Device Info Card
-                      Expanded(
-                        flex: 1,
-                        child: _buildDeviceInfoCard(),
-                      ),
-                      const SizedBox(width: 16),
-                      // Notes Section
-                      Expanded(
-                        flex: 2,
-                        child: _buildNotesSection(),
-                      ),
-                    ],
-                  ),
-                ),
-              // Data Visualization Tabs
-              StreamBuilder(
-                stream: FirebaseDatabase.instance
-                    .ref()
-                    .child('devices/${widget.deviceID}')
-                    .onValue,
-                builder: (context, AsyncSnapshot snapshot) {
-                  if (snapshot.hasData) {
-                    var data = snapshot.data.snapshot.value;
-
-                    List<String> valueKeys = [];
-                    List<String> stringValueKeys = [];
-
-                    if (data == null) {
-                      return Container(
-                        margin: const EdgeInsets.all(16),
-                        height: 300,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.data_usage_rounded,
-                                size: 64,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No Data Found',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[600],
-                                  fontFamily: 'Nunito',
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'This device hasn\'t sent any data yet',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[500],
-                                  fontFamily: 'Nunito',
-                                ),
-                              ),
-                            ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Loading State
+                  if (isLoading)
+                    Container(
+                      margin: const EdgeInsets.all(16),
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
                           ),
-                        ),
-                      );
-                    }
+                        ],
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  // Device Info Section
+                  if (!isLoading)
+                    Container(
+                      // margin: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Device Info Card
+                          Expanded(
+                            flex: 1,
+                            child: _buildDeviceInfoCard(),
+                          ),
+                          const SizedBox(width: 16),
+                          // Notes Section
+                          Expanded(
+                            flex: 2,
+                            child: _buildNotesSection(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  // Data Visualization Tabs
+                  StreamBuilder(
+                    stream: FirebaseDatabase.instance
+                        .ref()
+                        .child('devices/${widget.deviceID}')
+                        .onValue,
+                    builder: (context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasData) {
+                        var data = snapshot.data.snapshot.value;
 
-                    if (data == null || !data.containsKey('value')) {
-                      return SendValueTutorial(deviceId: deviceId);
-                    } else {
-                      if (data.containsKey('value') && status != 'Connected') {
-                        DevicesService().updateDeviceStatus(widget.deviceID);
-                      }
+                        List<String> valueKeys = [];
+                        List<String> stringValueKeys = [];
 
-                      Map<String, dynamic> deviceValue =
-                          Map<String, dynamic>.from(data['value'] as Map);
-
-                      deviceValue.forEach((key, value) {
-                        if (value is String) {
-                          stringValueKeys.add(key);
-                        } else {
-                          valueKeys.add(key);
-                        }
-                      });
-
-                      List<String> allKeys = [];
-                      allKeys.addAll(valueKeys);
-                      allKeys.addAll(stringValueKeys);
-
-                      // Remove unused variable
-                      // LogModel newVal = LogModel(
-                      //     deviceId: deviceId,
-                      //     value: deviceValue.toString(),
-                      //     deviceName: widget.deviceName);
-
-                      return Container(
-                        margin: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: SizedBox(
-                          height: Get.height - 350,
-                          child: ContainedTabBarView(
-                            tabBarProperties: TabBarProperties(
-                              height: 50,
-                              labelStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontFamily: 'Nunito',
-                                fontWeight: FontWeight.w600,
-                              ),
-                              unselectedLabelStyle: TextStyle(
-                                fontSize: 16,
-                                color: ColorApp.lapisLazuli,
-                                fontFamily: 'Nunito',
-                                fontWeight: FontWeight.w500,
-                              ),
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              indicatorColor: ColorApp.lapisLazuli,
-                              indicator: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    ColorApp.lapisLazuli,
-                                    ColorApp.lapisLazuli.withOpacity(0.8)
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
+                        if (data == null) {
+                          return Container(
+                            margin: const EdgeInsets.all(16),
+                            height: 300,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color:
-                                        ColorApp.lapisLazuli.withOpacity(0.3),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
+                              ],
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.data_usage_rounded,
+                                    size: 64,
+                                    color: Colors.grey[400],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No Data Found',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[600],
+                                      fontFamily: 'Nunito',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'This device hasn\'t sent any data yet',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[500],
+                                      fontFamily: 'Nunito',
+                                    ),
                                   ),
                                 ],
                               ),
-                              margin: const EdgeInsets.all(8),
                             ),
-                            tabs: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.dashboard_rounded, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('Dashboard'),
-                                  ],
+                          );
+                        }
+
+                        if (data == null || !data.containsKey('value')) {
+                          return SendValueTutorial(deviceId: deviceId);
+                        } else {
+                          if (data.containsKey('value') &&
+                              status != 'Connected') {
+                            DevicesService()
+                                .updateDeviceStatus(widget.deviceID);
+                          }
+
+                          Map<String, dynamic> deviceValue =
+                              Map<String, dynamic>.from(data['value'] as Map);
+
+                          deviceValue.forEach((key, value) {
+                            if (value is String) {
+                              stringValueKeys.add(key);
+                            } else {
+                              valueKeys.add(key);
+                            }
+                          });
+
+                          List<String> allKeys = [];
+                          allKeys.addAll(valueKeys);
+                          allKeys.addAll(stringValueKeys);
+
+                          return Container(
+                            margin: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
                                 ),
+                              ],
+                            ),
+                            child: SizedBox(
+                              height:
+                                  550, // Fixed reasonable height for TabBar section
+                              child: ContainedTabBarView(
+                                tabBarProperties: TabBarProperties(
+                                  height: 50,
+                                  labelStyle: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontFamily: 'Nunito',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  unselectedLabelStyle: TextStyle(
+                                    fontSize: 16,
+                                    color: ColorApp.lapisLazuli,
+                                    fontFamily: 'Nunito',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  indicatorColor: ColorApp.lapisLazuli,
+                                  indicator: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        ColorApp.lapisLazuli,
+                                        ColorApp.lapisLazuli.withOpacity(0.8)
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: ColorApp.lapisLazuli
+                                            .withOpacity(0.3),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  margin: const EdgeInsets.all(8),
+                                ),
+                                tabs: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.dashboard_rounded, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Dashboard'),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.analytics_rounded, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Charts'),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.list_alt_rounded, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Logs'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                views: [
+                                  DeviceDashboard(
+                                    deviceID: widget.deviceID,
+                                    valueKeys: allKeys,
+                                    deviceName: widget.deviceName,
+                                  ),
+                                  DeviceCharts(
+                                    deviceId: widget.deviceID,
+                                    valueKeys: valueKeys,
+                                  ),
+                                  DeviceLog(
+                                    deviceId: widget.deviceID,
+                                    keys: valueKeys,
+                                  ),
+                                ],
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.analytics_rounded, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('Charts'),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.list_alt_rounded, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('Logs'),
-                                  ],
-                                ),
+                            ),
+                          );
+                        }
+                      } else if (snapshot.hasError) {
+                        return Container(
+                          margin: const EdgeInsets.all(16),
+                          height: 300,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
                               ),
                             ],
-                            views: [
-                              DeviceDashboard(
-                                deviceID: widget.deviceID,
-                                valueKeys: allKeys,
-                                deviceName: widget.deviceName,
-                              ),
-                              DeviceCharts(
-                                deviceId: widget.deviceID,
-                                valueKeys: valueKeys,
-                              ),
-                              DeviceLog(
-                                deviceId: widget.deviceID,
-                                keys: valueKeys,
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline_rounded,
+                                  size: 64,
+                                  color: Colors.red[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Error Loading Data',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red[600],
+                                    fontFamily: 'Nunito',
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  snapshot.error.toString(),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.red[500],
+                                    fontFamily: 'Nunito',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      } else {
+                        return Container(
+                          margin: const EdgeInsets.all(16),
+                          height:
+                              300, // Fixed reasonable height for loading state
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    }
-                  } else if (snapshot.hasError) {
-                    return Container(
-                      margin: const EdgeInsets.all(16),
-                      height: 300,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  color: ColorApp.lapisLazuli,
+                                  strokeWidth: 3,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Loading Device Data...',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                    fontFamily: 'Nunito',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline_rounded,
-                              size: 64,
-                              color: Colors.red[400],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Error Loading Data',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red[600],
-                                fontFamily: 'Nunito',
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              snapshot.error.toString(),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.red[500],
-                                fontFamily: 'Nunito',
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    return Container(
-                      margin: const EdgeInsets.all(16),
-                      height: 300,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(
-                              color: ColorApp.lapisLazuli,
-                              strokeWidth: 3,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Loading Device Data...',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[600],
-                                fontFamily: 'Nunito',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-                },
+                        );
+                      }
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
